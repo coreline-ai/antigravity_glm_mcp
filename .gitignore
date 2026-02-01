@@ -1,0 +1,36 @@
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Project Specific Data
+data/
+demo/data/
+.glm_backups/
+*.db
+*.jsonl
+*.log
+
+# Configuration & Secrets
+.env
+.env.*
+demo/config_suggestion.json
+demo/config_sample.json
+config_sample.json
+demo/*.cfg
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo

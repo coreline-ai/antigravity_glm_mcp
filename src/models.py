@@ -1,4 +1,4 @@
-"""gemini-glm-agent-mcp 데이터 모델"""
+"""antigravity_glm_mcp 데이터 모델"""
 from pydantic import BaseModel, Field
 from typing import Optional, List, Any
 from datetime import datetime
@@ -15,6 +15,7 @@ class ErrorCode(str, Enum):
     API_ERROR = "API_ERROR"
     TIMEOUT = "TIMEOUT"
     INTERNAL_ERROR = "INTERNAL_ERROR"
+    AUTH_ERROR = "AUTH_ERROR"
 
 
 class ToolResponse(BaseModel):

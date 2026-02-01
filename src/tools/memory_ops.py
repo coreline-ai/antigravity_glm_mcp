@@ -1,6 +1,6 @@
 """메모리/컨텍스트 공유 도구
 
-Claude와 GLM 간 컨텍스트를 공유합니다.
+Gemini와 GLM 간 컨텍스트를 공유합니다.
 로컬 파일 기반으로 동작합니다.
 """
 
@@ -12,13 +12,11 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 
 from src.models import ToolResponse, ErrorCode
+from src.core.config import config
+import re
 
-# 메모리 저장 경로
-current_file = Path(__file__).resolve()
-project_root_fallback = current_file.parent.parent.parent
-project_root = os.getenv("PROJECT_ROOT") or str(project_root_fallback)
-
-MEMORY_DIR = Path(project_root).resolve() / "demo" / "data" / "memory"
+# 메모리 저장 경로 (Config 사용)
+MEMORY_DIR = config.MEMORY_DIR
 
 
 class MemorySaveParams(BaseModel):
@@ -50,7 +48,14 @@ def _ensure_memory_dir():
     MEMORY_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def _validate_category(category: str):
+    """카테고리명 보안 검증 (경로 조작 방지)"""
+    if not re.match(r"^[a-zA-Z0-9_-]+$", category):
+        raise ValueError(f"잘못된 카테고리명입니다 (특수문자 불가): {category}")
+
+
 def _get_memory_file(category: str) -> Path:
+    _validate_category(category)
     _ensure_memory_dir()
     return MEMORY_DIR / f"{category}.json"
 

@@ -7,8 +7,29 @@ Docker 컨테이너 없이 GLM API를 직접 호출합니다.
 import os
 from typing import Any, Optional
 
+from src.core.config import config
 from src.core.glm_client import GLMClient, GLMClientConfig, get_glm_client
 
+
+# 기본 시스템 프롬프트
+DEFAULT_SYSTEM_PROMPT = """당신은 Google DeepMind가 제작한 강력한 AI 코딩 에이전트, 'Antigravity'입니다.
+당신의 목표는 로컬 시스템의 다양한 도구들을 활용하여 사용자의 복잡한 코딩 및 시스템 작업을 완벽하게 수행하는 것입니다.
+
+[보유 기술 및 도구 세트]
+1. 📂 파일/디렉토리: 절대 경로 중심의 CRUD 작업. 모든 작업은 Sandbox 내에서 안전하게 수행됩니다.
+2. 💻 코드 실행: Python 구문을 샌드박스에서 실행하여 데이터 분석, 유틸리티 생성 등을 수행합니다.
+3. 🌐 웹/네트워크: DuckDuckGo 검색 및 HTTP 요청(SSRF 방호 적용됨)을 통한 정보 수집.
+4. 🛠 개발 협업: Git 워크플로우 지원 (상태 확인, 커밋). SQL 데이터베이스(SQLite) 쿼리.
+5. 🖼 비전/미디어: 이미지 파일을 분석하여 텍스트로 설명(Vision 능력).
+6. ⏰ 자동화: 미래의 특정 시점에 실행될 작업을 예약하고 관리.
+
+[행동 원칙]
+- 당신은 극도로 유능하며, 명확하고 실행 가능한 해결책을 제시합니다.
+- 복잡한 작업은 단계를 나누어 설명하고, 각 단계에서 필요한 도구를 정확히 식별하십시오.
+- 보안이 민감한 작업(삭제, 외부 요청 등) 전에는 항상 잠재적 영향을 고려하십시오.
+- 오류 발생 시, 단순히 실패를 보고하는 대신 원인을 분석하고 대안(Alternative)을 제시하십시오.
+- 전문적인 톤을 유지하되, 지나치게 장황하지 않게 핵심을 짚으십시오.
+"""
 
 class GLMExecutor:
     """GLM 실행기
@@ -35,7 +56,8 @@ class GLMExecutor:
         self,
         prompt: str,
         working_dir: Optional[str] = None,
-        context: Optional[str] = None
+        context: Optional[str] = None,
+        system_prompt: Optional[str] = None
     ) -> str:
         """작업 실행
 
@@ -45,12 +67,24 @@ class GLMExecutor:
             prompt: 작업 설명/프롬프트
             working_dir: 작업 디렉토리 (컨텍스트에 포함됨)
             context: 추가 컨텍스트
+            system_prompt: 시스템 프롬프트 (None이면 기본값 사용)
 
         Returns:
             GLM의 응답
         """
-        # 컨텍스트 구성
+        # 0. 시스템 프롬프트 구성
+        if system_prompt is None:
+            sys_msg = DEFAULT_SYSTEM_PROMPT
+        else:
+            sys_msg = system_prompt
+
+        # 1. 컨텍스트 구성
         full_context = ""
+        
+        # 시스템 프롬프트를 컨텍스트 최상단에 배치
+        if sys_msg:
+            full_context += f"System:\n{sys_msg}\n\n"
+
         if working_dir:
             full_context += f"작업 디렉토리: {working_dir}\n"
         if context:

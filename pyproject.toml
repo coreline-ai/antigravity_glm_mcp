@@ -1,5 +1,5 @@
 [project]
-name = "gemini-glm-agent-mcp"
+name = "antigravity_glm_mcp"
 version = "0.1.0"
 description = "Gemini (Antigravity)용 GLM-4-plus 협업 MCP 서버"
 readme = "README.md"

@@ -1,0 +1,6 @@
+mcp
+pydantic
+zhipuai
+python-dotenv
+requests
+duckduckgo-search

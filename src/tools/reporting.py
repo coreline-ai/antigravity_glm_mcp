@@ -3,6 +3,11 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 
 from src.models import ToolResponse, ErrorCode
+from src.core.config import config
+import json
+import asyncio
+from datetime import datetime
+from pathlib import Path
 
 
 class ActionLogParams(BaseModel):
@@ -20,7 +25,16 @@ class ActionLogger:
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
         return cls._instance
+
+    def __init__(self):
+        if self._initialized:
+            return
+        self._logs = []
+        self._initialized = True
+        # 기존 로그 로드
+        asyncio.create_task(self._load_existing_logs())
 
     async def get_logs(
         self,
@@ -35,7 +49,60 @@ class ActionLogger:
         return sorted_logs[offset:offset + limit]
 
     async def add_log(self, log: Dict[str, Any]) -> None:
+        # 타임스탬프 자동 추가
+        if "timestamp" not in log:
+            log["timestamp"] = datetime.now().isoformat()
+            
         self._logs.append(log)
+        await self._save_log_entry(log)
+
+    async def _save_log_entry(self, log: Dict[str, Any]) -> None:
+        """로그를 파일에 추가 (JSONL)"""
+        try:
+            log_line = json.dumps(log, ensure_ascii=False) + "\n"
+            log_file = config.LOG_FILE
+            
+            # 부모 디렉토리 생성
+            if not log_file.parent.exists():
+                log_file.parent.mkdir(parents=True, exist_ok=True)
+                
+            await asyncio.to_thread(self._append_to_file, log_file, log_line)
+        except Exception as e:
+            # 로깅 실패가 전체 흐름을 막지 않도록 함
+            print(f"로그 저장 실패: {e}")
+
+    def _append_to_file(self, path: Path, content: str) -> None:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(content)
+
+    async def _load_existing_logs(self) -> None:
+        """기존 로그 파일에서 최근 로그 로드"""
+        try:
+            log_file = config.LOG_FILE
+            if not log_file.exists():
+                return
+
+            # 파일이 클 수 있으므로 마지막 N줄만 읽는 것이 좋지만,
+            # 여기서는 JSONL이므로 간단히 전체 로드 (메모리 제약 고려 필요시 수정)
+            def read_logs():
+                loaded = []
+                with open(log_file, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if line.strip():
+                            try:
+                                loaded.append(json.loads(line))
+                            except json.JSONDecodeError:
+                                continue
+                return loaded
+
+            logs = await asyncio.to_thread(read_logs)
+            # 중복 방지를 위해 기존 로그를 교체하거나 병합
+            # 여기서는 초기화 시점에만 호출되므로 append
+            self._logs.extend(logs)
+            # 시간순 정렬
+            self._logs.sort(key=lambda x: x.get("timestamp", ""))
+        except Exception as e:
+            print(f"기존 로그 로드 실패: {e}")
 
     async def clear_logs(self) -> None:
         self._logs.clear()

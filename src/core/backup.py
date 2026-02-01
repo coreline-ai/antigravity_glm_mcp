@@ -118,7 +118,10 @@ class BackupManager:
 
         # 버전 인덱스 처리
         try:
-            backup_to_restore = backups[version]
+            # list_backups()가 최신순(내림차순)으로 정렬되어 있으므로
+            # -1(최신) 혹은 0은 가장 최근의 백업을 의미함.
+            idx = 0 if version == -1 else version
+            backup_to_restore = backups[idx]
         except IndexError:
             return False
 

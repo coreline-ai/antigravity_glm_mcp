@@ -8,6 +8,8 @@ import asyncio
 import os
 from typing import Any, Optional
 
+from src.core.config import config
+
 import httpx
 from pydantic import BaseModel, Field
 
@@ -28,7 +30,7 @@ class GLMClient:
     """GLM API 클라이언트
 
     Zhipu AI의 GLM-4 모델과 직접 통신하는 비동기 클라이언트.
-    Docker 컨테이너나 Claude CLI 없이 HTTPS로 직접 호출합니다.
+    Docker 컨테이너 없이 HTTPS로 직접 호출합니다.
     """
 
     def __init__(self, config: GLMClientConfig) -> None:
@@ -198,15 +200,15 @@ def get_glm_client() -> GLMClient:
     """
     global _client
     if _client is None:
-        api_key = os.getenv("ZHIPU_API_KEY")
+        api_key = config.ZHIPU_API_KEY
         if not api_key:
             raise ValueError("ZHIPU_API_KEY 환경변수가 설정되지 않았습니다")
 
-        config = GLMClientConfig(
+        client_config = GLMClientConfig(
             api_key=api_key,
-            model=os.getenv("GLM_MODEL", "glm-4-plus"),
-            timeout=int(os.getenv("GLM_TIMEOUT", "120")),
-            base_url=os.getenv("GLM_BASE_URL", "https://open.bigmodel.cn/api/paas/v4"),
+            model=config.GLM_MODEL,
+            timeout=config.GLM_TIMEOUT,
+            base_url=config.GLM_BASE_URL,
         )
-        _client = GLMClient(config)
+        _client = GLMClient(client_config)
     return _client

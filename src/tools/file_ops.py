@@ -16,7 +16,7 @@ import chardet
 from pydantic import BaseModel, Field, field_validator
 
 from src.core.backup import BackupManager
-from src.core.sandbox import SandboxValidator
+from src.core.sandbox import SandboxValidator, get_sandbox_validator
 from src.models import ErrorCode, ToolResponse
 
 # 상수
@@ -24,30 +24,16 @@ MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10MB
 
 
 # 싱글톤 인스턴스
-_sandbox_validator: Optional[SandboxValidator] = None
 _backup_manager: Optional[BackupManager] = None
 
-
-def get_sandbox_validator() -> SandboxValidator:
-    """샌드박스 검증기 팩토리 (싱글톤)"""
-    global _sandbox_validator
-
-    project_root = os.getenv("PROJECT_ROOT")
-    if not project_root:
-        raise ValueError("PROJECT_ROOT 환경변수가 설정되지 않았습니다")
-
-    if _sandbox_validator is None or str(_sandbox_validator.project_root) != project_root:
-        _sandbox_validator = SandboxValidator(project_root)
-
-    return _sandbox_validator
 
 
 def get_backup_manager() -> BackupManager:
     """백업 관리자 팩토리 (싱글톤)"""
     global _backup_manager
 
-    project_root = os.getenv("PROJECT_ROOT", "/tmp")
-    backup_dir = Path(project_root) / ".glm_backups"
+    from src.core.config import config
+    backup_dir = config.BACKUP_DIR
 
     if _backup_manager is None or str(_backup_manager.backup_dir) != str(backup_dir):
         _backup_manager = BackupManager(backup_dir=backup_dir, max_versions=10)
