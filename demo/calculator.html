@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Glassmorphism Calculator</title>
+    <style>
+        /* 기본 스타일 리셋 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #0a0a1a, #1a1a3a, #0a0a1a);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 배경 데코레이션 (유리 질감 강조) */
+        .blob {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            filter: blur(80px);
+            border-radius: 50%;
+            z-index: 1;
+            opacity: 0.4;
+            animation: move 20s infinite alternate;
+        }
+        .blob-2 {
+            background: linear-gradient(135deg, #ec4899, #f43f5e);
+            bottom: 10%;
+            right: 15%;
+            width: 400px;
+            height: 400px;
+            animation-duration: 25s;
+        }
+
+        @keyframes move {
+            from { transform: translate(-20%, -20%); }
+            to { transform: translate(20%, 20%); }
+        }
+
+        /* 계산기 본체 (Glassmorphism) */
+        .calculator {
+            position: relative;
+            z-index: 10;
+            width: 360px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 디스플레이 영역 */
+        .display {
+            width: 100%;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px;
+            text-align: right;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .previous {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 5px;
+            min-height: 1.2em;
+        }
+
+        .current {
+            font-size: 2rem;
+            color: #fff;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        /* 버튼 그리드 */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        button {
+            aspect-ratio: 1;
+            border: none;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* 특수 기능 버튼 컬러 */
+        .op { color: #818cf8; background: rgba(129, 140, 248, 0.1); }
+        .eq { background: linear-gradient(135deg, #6366f1, #a855f7); color: #fff; grid-column: span 2; aspect-ratio: auto; border-radius: 18px; }
+        .clear { color: #f43f5e; background: rgba(244, 63, 94, 0.1); }
+    </style>
+</head>
+<body>
+    <div class="blob"></div>
+    <div class="blob blob-2"></div>
+    
+    <div class="calculator">
+        <div class="display">
+            <div id="previous" class="previous"></div>
+            <div id="current" class="current">0</div>
+        </div>
+        <div class="buttons">
+            <button class="clear" onclick="clearCalculator()">C</button>
+            <button class="op" onclick="deleteLast()">Del</button>
+            <button class="op" onclick="appendOperator('/')">÷</button>
+            <button class="op" onclick="appendOperator('*')">×</button>
+            
+            <button onclick="appendNumber('7')">7</button>
+            <button onclick="appendNumber('8')">8</button>
+            <button onclick="appendNumber('9')">9</button>
+            <button class="op" onclick="appendOperator('-')">-</button>
+            
+            <button onclick="appendNumber('4')">4</button>
+            <button onclick="appendNumber('5')">5</button>
+            <button onclick="appendNumber('6')">6</button>
+            <button class="op" onclick="appendOperator('+')">+</button>
+            
+            <button onclick="appendNumber('1')">1</button>
+            <button onclick="appendNumber('2')">2</button>
+            <button onclick="appendNumber('3')">3</button>
+            <button onclick="compute()">=</button>
+            
+            <button onclick="appendNumber('0')" style="grid-column: span 2; aspect-ratio: auto;">0</button>
+            <button onclick="appendNumber('.')">.</button>
+            <button class="eq" onclick="compute()">＝</button>
+        </div>
+    </div>
+
+    <script>
+        let currentOperand = '0';
+        let previousOperand = '';
+        let operation = undefined;
+
+        const currentDisplay = document.getElementById('current');
+        const previousDisplay = document.getElementById('previous');
+
+        function updateDisplay() {
+            currentDisplay.innerText = currentOperand;
+            previousDisplay.innerText = previousOperand + (operation || '');
+        }
+
+        function appendNumber(number) {
+            if (number === '.' && currentOperand.includes('.')) return;
+            if (currentOperand === '0' && number !== '.') {
+                currentOperand = number.toString();
+            } else {
+                currentOperand = currentOperand.toString() + number.toString();
+            }
+            updateDisplay();
+        }
+
+        function appendOperator(op) {
+            if (currentOperand === '') return;
+            if (previousOperand !== '') {
+                compute();
+            }
+            operation = op;
+            previousOperand = currentOperand;
+            currentOperand = '0';
+            updateDisplay();
+        }
+
+        function clearCalculator() {
+            currentOperand = '0';
+            previousOperand = '';
+            operation = undefined;
+            updateDisplay();
+        }
+
+        function deleteLast() {
+            if (currentOperand === '0') return;
+            currentOperand = currentOperand.toString().slice(0, -1);
+            if (currentOperand === '') currentOperand = '0';
+            updateDisplay();
+        }
+
+        function compute() {
+            let computation;
+            const prev = parseFloat(previousOperand);
+            const current = parseFloat(currentOperand);
+            if (isNaN(prev) || isNaN(current)) return;
+
+            switch (operation) {
+                case '+': computation = prev + current; break;
+                case '-': computation = prev - current; break;
+                case '*': computation = prev * current; break;
+                case '/': computation = prev / current; break;
+                default: return;
+            }
+
+            currentOperand = computation.toString();
+            operation = undefined;
+            previousOperand = '';
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>

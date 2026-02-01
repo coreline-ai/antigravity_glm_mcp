@@ -1,0 +1,17 @@
+{
+    "mcpServers": {
+        "gemini-glm-agent": {
+            "command": "/Users/hwanchoi/opensource_projects/gemini-glm-agent-mcp/.venv/bin/python",
+            "args": [
+                "/Users/hwanchoi/opensource_projects/gemini-glm-agent-mcp/src/server.py"
+            ],
+            "env": {
+                "PROJECT_ROOT": "/Users/hwanchoi/opensource_projects/gemini-glm-agent-mcp/demo",
+                "ZHIPU_API_KEY": "bd9b45e80d5d489fb912dde188df0aa2.09LUOUkQWjVkctqo",
+                "PYTHONPATH": "/Users/hwanchoi/opensource_projects/gemini-glm-agent-mcp",
+                "GLM_MODEL": "GLM-4.5",
+                "GLM_BASE_URL": "https://api.z.ai/api/coding/paas/v4"
+            }
+        }
+    }
+}

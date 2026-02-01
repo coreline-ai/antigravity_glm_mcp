@@ -1,0 +1,17 @@
+# GLM MCP 프로젝트 시작을 위한 간단한 Todo 리스트
+
+## 1. API 키 설정 확인
+- [ ] GLM 모델 접근을 위한 API 키 발급 완료 여부 확인
+- [ ] `.env` 파일 생성 후 `GLM_API_KEY="실제_키값"` 형식으로 설정
+- [ ] 시스템 환경변수에 API 키 등록 (선택사항)
+- [ ] 키 노출 방지를 위해 `.env` 파일을 `.gitignore`에 추가
+
+## 2. 개발 환경 구성
+- [ ] Python 3.8 이상 버전 설치 확인
+- [ ] 가상 환경 생성(`python -m venv venv`) 및 활성화
+- [ ] 필수 패키지 설치: `pip install openai requests python-dotenv`
+- [ ] IDE(VSCode 등)에서 Python 가상 환경 선택
+
+## 3. 기본 연동 테스트
+- [ ] 연동 테스트 스크립트 실행 및 결과 확인
+- [ ] 정상 응답 확인 후 본격적인 개발 시작

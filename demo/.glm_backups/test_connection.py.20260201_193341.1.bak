@@ -1,0 +1,55 @@
+import os
+import requests
+from dotenv import load_dotenv
+
+# 환경변수 로드
+load_dotenv()
+
+# API 설정 가져오기
+API_KEY = os.getenv("GLM_API_KEY")
+BASE_URL = os.getenv("GLM_BASE_URL")
+MODEL = os.getenv("GLM_MODEL")
+
+def test_glm_connection():
+    """GLM API 기본 연결 테스트"""
+    if not API_KEY:
+        print("❌ 경고: .env 파일에서 GLM_API_KEY를 찾을 수 없습니다!")
+        return
+
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": MODEL or "GLM-4.5",
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "안녕하세요! GLM 연결이 잘 되나요?"}
+        ],
+        "temperature": 0.7
+    }
+    
+    print(f"📡 연결 시도 중... (모델: {MODEL or 'GLM-4.5'})")
+    
+    try:
+        response = requests.post(
+            f"{BASE_URL}/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print("✅ API 연결 성공!")
+            print(f"응답 메시지: {result['choices'][0]['message']['content']}")
+        else:
+            print(f"❌ API 요청 실패: {response.status_code}")
+            print(f"에러 내용: {response.text}")
+            
+    except Exception as e:
+        print(f"⚠️ 연결 오류 발생: {str(e)}")
+
+if __name__ == "__main__":
+    test_glm_connection()
